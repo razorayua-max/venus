@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Венера · Видное</title>
+<link href="https://fonts.googleapis.com/css2?family=Marck+Script&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --purple:#8B5CF6; --purple-dark:#6D28D9; --purple-light:#EDE9FE;
+  --text:#1F2937; --text2:#6B7280; --border:#E5E7EB;
+  --success:#10B981; --success-light:#D1FAE5;
+  --danger:#EF4444; --danger-light:#FEE2E2;
+  --busy:#D1D5DB; --busy-bg:#F3F4F6;
+  --bg:#FAFAFB;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Inter',-apple-system,'Segoe UI',Roboto,sans-serif;color:var(--text);background:var(--bg);min-height:100vh;font-size:15px}
+button{font-family:inherit;cursor:pointer;border:none;outline:none;font-size:15px;transition:all .15s}
+input,select,textarea{font-family:inherit;font-size:15px;outline:none;color:var(--text)}
+svg.icon{width:20px;height:20px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+svg.icon-sm{width:16px;height:16px;stroke-width:2}
+
+.screen{display:none;min-height:100vh}
+.screen.active{display:block}
+
+#welcome{
+  background:linear-gradient(135deg,#8B5CF6 0%,#6D28D9 50%,#5B21B6 100%);
+  display:none;align-items:center;justify-content:center;padding:20px;
+  position:relative;overflow:hidden;min-height:100vh;
+}
+#welcome::before{
+  content:'';position:absolute;width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.15) 0%,transparent 70%);
+  top:-200px;right:-200px;
+}
+#welcome.active{display:flex}
+.welcome-card{
+  background:#fff;border-radius:28px;padding:56px 40px 44px;max-width:440px;width:100%;
+  box-shadow:0 30px 80px rgba(0,0,0,.35);text-align:center;position:relative;z-index:1;
+}
+.brand-title{font-family:'Marck Script',cursive;font-size:64px;color:var(--purple-dark);line-height:1;margin-bottom:4px;letter-spacing:1px}
+.brand-sub{font-size:12px;color:var(--text2);letter-spacing:4px;text-transform:uppercase;margin-bottom:36px;font-weight:500}
+.welcome-card .label-sm{font-size:13px;color:var(--text2);margin-bottom:14px;font-weight:500}
+.promo-input{width:100%;padding:16px;border:2px solid var(--purple-light);border-radius:14px;font-size:22px;text-align:center;letter-spacing:8px;margin-bottom:14px;transition:.2s;font-weight:600;color:var(--purple-dark)}
+.promo-input::placeholder{color:var(--border);letter-spacing:8px}
+.promo-input:focus{border-color:var(--purple);background:#FAF5FF}
+.promo-input:disabled{background:#F3F4F6;color:var(--text2);cursor:not-allowed}
+
+.btn{width:100%;padding:14px;border-radius:12px;font-weight:600;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary{background:var(--purple);color:#fff;box-shadow:0 4px 14px rgba(139,92,246,.3)}
+.btn-primary:hover:not(:disabled){background:var(--purple-dark);transform:translateY(-1px);box-shadow:0 6px 20px rgba(139,92,246,.4)}
+.btn-primary:disabled{background:var(--busy);box-shadow:none;cursor:not-allowed;transform:none}
+.btn-ghost{background:transparent;color:var(--text2);margin-top:6px;font-size:14px;font-weight:500}
+.btn-ghost:hover{color:var(--purple)}
+.btn-outline{background:#fff;border:2px solid var(--border);color:var(--text)}
+.btn-outline:hover{border-color:var(--purple);color:var(--purple)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-success{background:var(--success);color:#fff}
+.btn-sm{padding:8px 14px;border-radius:9px;font-size:13px;font-weight:600;width:auto}
+
+.error-msg{color:var(--danger);font-size:13px;margin-top:10px;display:none;font-weight:500;line-height:1.4}
+.warn-msg{color:#B45309;font-size:13px;margin-top:10px;font-weight:600;line-height:1.4}
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--text2);font-size:12px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.auth-page{display:flex;align-items:center;justify-content:center;padding:40px 20px;min-height:100vh;background:linear-gradient(160deg,#FAF5FF 0%,#F3E8FF 100%)}
+.auth-card{background:#fff;border-radius:24px;padding:44px 36px;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(139,92,246,.15)}
+.auth-brand{font-family:'Marck Script',cursive;font-size:38px;color:var(--purple-dark);text-align:center;margin-bottom:4px;line-height:1}
+.auth-card h2{font-size:20px;color:var(--text);margin-bottom:6px;text-align:center;font-weight:700;margin-top:18px}
+.auth-card .sub{text-align:center;color:var(--text2);font-size:14px;margin-bottom:28px;line-height:1.5}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:7px}
+.field label .opt{color:var(--text2);font-weight:400;font-size:12px}
+.field input,.field select,.field textarea{width:100%;padding:13px 15px;border:2px solid var(--border);border-radius:11px;transition:.2s;background:#fff}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--purple);background:#FAF5FF}
+
+.pin-input{font-size:30px;text-align:center;letter-spacing:14px;padding:18px;font-weight:700;color:var(--purple-dark);font-family:'Courier New',monospace}
+.pin-input::placeholder{letter-spacing:14px;color:var(--border)}
+
+.info-box{background:var(--purple-light);border-radius:14px;padding:16px 18px;margin-bottom:20px;font-size:13.5px;color:var(--purple-dark);line-height:1.55;display:flex;gap:12px;align-items:flex-start}
+.info-box svg{flex-shrink:0;margin-top:1px;stroke:var(--purple-dark)}
+
+.header{background:#fff;border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 8px rgba(0,0,0,.03)}
+.header .brand{font-family:'Marck Script',cursive;font-size:30px;color:var(--purple-dark);line-height:1;font-weight:400}
+.header .right{display:flex;align-items:center;gap:18px}
+.bell{position:relative;cursor:pointer;color:var(--text);display:flex;padding:6px;border-radius:9px;transition:.2s}
+.bell:hover{background:var(--purple-light);color:var(--purple-dark)}
+.bell .badge{position:absolute;top:-2px;right:-2px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;padding:2px 5px;border-radius:9px;min-width:16px;text-align:center;display:none;border:2px solid #fff}
+.user-menu{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;padding:6px 10px;border-radius:9px;transition:.2s;font-weight:500}
+.user-menu:hover{background:var(--purple-light);color:var(--purple-dark)}
+.notif-panel{position:absolute;top:64px;right:24px;background:#fff;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.15);width:360px;max-height:440px;overflow-y:auto;display:none;z-index:200;border:1px solid var(--border)}
+.notif-panel.open{display:block;animation:slideDown .2s ease}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.notif-panel h3{padding:16px 20px;border-bottom:1px solid var(--border);font-size:15px;color:var(--purple-dark);font-weight:700;position:sticky;top:0;background:#fff;border-radius:16px 16px 0 0}
+.notif-item{padding:14px 20px;border-bottom:1px solid var(--border);font-size:14px}
+.notif-item:last-child{border-bottom:none}
+.notif-item.unread{background:var(--purple-light);border-left:3px solid var(--purple)}
+.notif-item .t{font-weight:600;margin-bottom:3px}
+.notif-item .d{font-size:13px;color:var(--text2);line-height:1.4}
+.notif-empty{padding:36px 20px;text-align:center;color:var(--text2);font-size:14px}
+
+.container{max-width:1100px;margin:0 auto;padding:28px 20px;width:100%}
+.tabs{display:flex;gap:6px;margin-bottom:28px;flex-wrap:wrap;background:#fff;padding:6px;border-radius:14px;border:1px solid var(--border)}
+.tab{padding:10px 18px;border-radius:9px;background:transparent;border:none;font-weight:600;font-size:14px;color:var(--text2);transition:.2s;display:inline-flex;align-items:center;gap:7px}
+.tab.active{background:var(--purple);color:#fff;box-shadow:0 2px 8px rgba(139,92,246,.3)}
+.tab:hover:not(.active){background:var(--purple-light);color:var(--purple-dark)}
+.section{display:none}
+.section.active{display:block;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.card{background:#fff;border-radius:18px;padding:26px;margin-bottom:18px;box-shadow:0 2px 12px rgba(0,0,0,.04);border:1px solid var(--border)}
+.card h3{font-size:16px;margin-bottom:18px;color:var(--purple-dark);font-weight:700;display:flex;align-items:center;gap:9px}
+
+.calendar-wrap{width:100%;overflow:hidden}
+.cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.cal-title{font-size:18px;font-weight:700;color:var(--text);text-transform:capitalize}
+.cal-nav{display:flex;gap:6px}
+.cal-nav button{width:36px;height:36px;border-radius:9px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text)}
+.cal-nav button:hover{background:var(--purple-light);color:var(--purple-dark);border-color:var(--purple-light)}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-bottom:8px;width:100%}
+.cal-weekdays div{text-align:center;font-size:12px;color:var(--text2);font-weight:600;text-transform:uppercase;padding:6px 0;overflow:hidden}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;width:100%}
+.cal-day{border-radius:11px;background:#fff;border:2px solid var(--border);padding:6px;cursor:pointer;transition:.15s;display:flex;flex-direction:column;align-items:center;justify-content:space-between;position:relative;min-height:64px;width:100%;overflow:hidden;min-width:0}
+.cal-day.empty{background:transparent;border:none;cursor:default}
+.cal-day.weekend{background:#F9FAFB;color:var(--busy);cursor:not-allowed;border-color:transparent}
+.cal-day.past{opacity:.35;cursor:not-allowed}
+.cal-day.far-future{opacity:.35;cursor:not-allowed;background:#F9FAFB}
+.cal-day.today{border-color:var(--purple);box-shadow:0 0 0 3px var(--purple-light)}
+.cal-day.selected{background:var(--purple);border-color:var(--purple);color:#fff}
+.cal-day.selected .cal-num{color:#fff}
+.cal-day.selected .dot{background:rgba(255,255,255,.7)!important}
+.cal-day.selected .dot.busy{background:rgba(255,255,255,.3)!important}
+.cal-day.selected .dot.closed{background:rgba(255,255,255,.3)!important}
+.cal-day.selected .cal-badge{background:#fff;color:var(--purple-dark)}
+.cal-day:not(.empty):not(.weekend):not(.past):not(.far-future):hover{border-color:var(--purple);transform:translateY(-1px)}
+.cal-num{font-size:14px;font-weight:600;color:var(--text);line-height:1}
+.cal-dots{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;margin-top:2px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--success)}
+.dot.busy{background:var(--busy)}
+.dot.closed{background:var(--danger)}
+.cal-day.closed-day{background:var(--danger-light)}
+.cal-day.closed-day .cal-num{color:var(--danger)}
+.cal-badge{position:absolute;top:4px;right:4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--purple);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 2px 5px rgba(139,92,246,.4);z-index:2}
+
+.slots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:10px;margin-top:14px}
+.slot{padding:15px 8px;border-radius:12px;text-align:center;font-weight:600;font-size:14px;border:2px solid var(--border);background:#fff;color:var(--text);transition:.15s;display:flex;flex-direction:column;align-items:center;gap:4px}
+.slot .time{font-size:15px;font-weight:700}
+.slot .status{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;opacity:.85}
+.slot.free{cursor:pointer;border-color:var(--success);background:#ECFDF5;color:#065F46}
+.slot.free:hover{background:var(--success);color:#fff;transform:translateY(-2px);box-shadow:0 6px 16px rgba(16,185,129,.3)}
+.slot.busy{background:var(--busy-bg);color:var(--text2);cursor:not-allowed;border-color:transparent}
+.slot.closed{background:var(--danger-light);color:#991B1B;cursor:not-allowed;border-color:#FCA5A5}
+
+.booking{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap}
+.booking:last-child{border-bottom:none;padding-bottom:0}
+.booking:first-child{padding-top:0}
+.booking .info{flex:1;min-width:200px}
+.booking .info .name{font-weight:600;margin-bottom:3px;font-size:15px}
+.booking .info .meta{font-size:13px;color:var(--text2);line-height:1.5}
+.booking .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.status-badge{padding:4px 11px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.status-badge.pending{background:#FEF3C7;color:#92400E}
+.status-badge.done{background:var(--success-light);color:#065F46}
+.status-badge.cancelled{background:var(--danger-light);color:#991B1B}
+
+.booking-card{padding:16px;border:2px solid var(--border);border-radius:14px;margin-bottom:10px;cursor:pointer;transition:.15s;background:#fff}
+.booking-card:hover{border-color:var(--purple);box-shadow:0 4px 16px rgba(139,92,246,.15);transform:translateY(-1px)}
+.booking-card .row1{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
+.booking-card .time-name{font-weight:700;font-size:15px;color:var(--text)}
+.booking-card .service{font-size:13px;color:var(--text2);margin-bottom:2px}
+.booking-card .phone{font-size:13px;color:var(--text2)}
+.booking-card .hint{font-size:11px;color:var(--purple);margin-top:8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+
+.clients-table{width:100%;border-collapse:collapse}
+.clients-table th{text-align:left;padding:12px 10px;font-size:11px;color:var(--text2);text-transform:uppercase;border-bottom:2px solid var(--border);font-weight:700;letter-spacing:.5px}
+.clients-table td{padding:15px 10px;border-bottom:1px solid var(--border);font-size:14px}
+.clients-table tr{cursor:pointer;transition:.15s}
+.clients-table tr:hover{background:var(--purple-light)}
+.clients-table tr:last-child td{border-bottom:none}
+.income{color:var(--success);font-weight:700}
+
+.fin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px}
+.fin-card{background:#fff;padding:22px;border-radius:16px;border:1px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,.04)}
+.fin-card .label{font-size:11px;color:var(--text2);text-transform:uppercase;margin-bottom:8px;font-weight:600;letter-spacing:.5px}
+.fin-card .value{font-size:26px;font-weight:700;color:var(--purple-dark)}
+.fin-card .delta{font-size:13px;margin-top:6px;font-weight:600}
+.delta.up{color:var(--success)}
+.delta.down{color:var(--danger)}
+.chart-wrap{background:#fff;padding:24px;border-radius:18px;border:1px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,.04);margin-bottom:18px}
+
+.modal-bg{position:fixed;inset:0;background:rgba(31,41,55,.65);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px;backdrop-filter:blur(4px)}
+.modal-bg.open{display:flex;animation:fadeIn .15s}
+.modal{background:#fff;border-radius:22px;padding:32px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto;position:relative;animation:modalIn .2s}
+@keyframes modalIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.modal h3{margin-bottom:14px;color:var(--purple-dark);font-size:19px;font-weight:700}
+.modal .close{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:.15s}
+.modal .close:hover{background:var(--danger-light);color:var(--danger)}
+.modal-actions{display:flex;gap:10px;margin-top:20px}
+.modal-actions .btn{flex:1}
+.modal-actions .btn-ghost{margin-top:0}
+.modal-text{font-size:14.5px;color:var(--text2);line-height:1.6;margin-bottom:8px}
+
+.confirm-info{background:var(--purple-light);border-radius:14px;padding:18px;margin-bottom:18px}
+.confirm-info .row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px}
+.confirm-info .row .k{color:var(--text2)}
+.confirm-info .row .v{font-weight:600;color:var(--purple-dark)}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--text);color:#fff;padding:14px 24px;border-radius:12px;font-size:14px;z-index:2000;transition:.3s cubic-bezier(.4,0,.2,1);box-shadow:0 12px 40px rgba(0,0,0,.25);font-weight:500;max-width:90vw}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.success{background:var(--success)}
+.toast.error{background:var(--danger)}
+
+.empty{text-align:center;padding:36px 20px;color:var(--text2);font-size:14px;line-height:1.6}
+.empty svg{width:48px;height:48px;stroke:var(--border);stroke-width:1.4;margin-bottom:12px}
+.lock-notice{background:var(--danger-light);border-radius:14px;padding:14px 18px;margin-top:12px;font-size:13px;color:#991B1B;font-weight:500;line-height:1.5;text-align:center}
+
+@media(max-width:600px){
+  .welcome-card{padding:40px 24px 32px}
+  .brand-title{font-size:52px}
+  .auth-card{padding:32px 22px}
+  .auth-brand{font-size:32px}
+  .header{padding:12px 16px}
+  .header .brand{font-size:24px}
+  .container{padding:18px 14px}
+  .notif-panel{right:12px;left:12px;width:auto;top:60px}
+  .card{padding:18px 16px}
+  .cal-grid{gap:4px}
+  .cal-weekdays{gap:4px}
+  .cal-day{min-height:50px;padding:3px;border-radius:8px}
+  .cal-num{font-size:12px}
+  .dot{width:4px;height:4px}
+  .cal-dots{gap:1px}
+  .cal-badge{min-width:15px;height:15px;font-size:9px;top:2px;right:2px;padding:0 4px}
+  .slots-grid{grid-template-columns:repeat(auto-fill,minmax(85px,1fr))}
+  .slot{padding:12px 6px}
+  .slot .time{font-size:13px}
+  .tab{padding:9px 13px;font-size:13px}
+  .pin-input{font-size:24px;letter-spacing:10px;padding:15px}
+  .pin-input::placeholder{letter-spacing:10px}
+  .modal{padding:24px 20px}
+}
+@media(max-width:380px){
+  .cal-day{min-height:44px}
+  .cal-num{font-size:11px}
+  .cal-weekdays div{font-size:10px}
+}
+</style>
+</head>
+<body>
+
+<!-- ПРИВЕТСТВИЕ -->
+<div class="screen active" id="welcome">
+  <div class="welcome-card">
+    <div class="brand-title">Венера</div>
+    <div class="brand-sub">Видное · студия красоты</div>
+
+    <div class="label-sm">Введите подарочный промокод</div>
+    <input type="password" class="promo-input" id="promoInput" placeholder="••••••" maxlength="6" inputmode="numeric">
+    <div class="warn-msg" id="promoAttempts" style="display:none"></div>
+    <div class="error-msg" id="promoError">Неверный код</div>
+    <div class="lock-notice" id="promoLock" style="display:none"></div>
+
+    <button class="btn btn-primary" id="promoBtn" onclick="checkPromo()" style="margin-top:8px">Продолжить</button>
+
+    <div class="divider">или</div>
+
+    <button class="btn btn-outline" onclick="skipPromo()">Войти</button>
+    <button class="btn btn-ghost" onclick="goToRegister()">Зарегистрироваться</button>
+  </div>
+</div>
+
+<!-- РЕГИСТРАЦИЯ МАСТЕРА -->
+<div class="screen" id="adminRegister">
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-brand">Венера</div>
+      <h2>Создайте учётную запись мастера</h2>
+      <p class="sub">Вы — администратор студии</p>
+
+      <div class="field"><label>Имя *</label><input type="text" id="admName" placeholder="Ольга"></div>
+      <div class="field"><label>Фамилия *</label><input type="text" id="admSurname" placeholder="Иванова"></div>
+      <div class="field"><label>Телефон *</label><input type="tel" id="admPhone" placeholder="+7 999 123-45-67"></div>
+      <div class="field"><label>Email <span class="opt">— необязательно</span></label><input type="email" id="admEmail" placeholder="olga@example.com"></div>
+      <div class="field"><label>Telegram <span class="opt">— необязательно</span></label><input type="text" id="admTg" placeholder="@olga_master"></div>
+
+      <button class="btn btn-primary" onclick="adminStep1()">Далее</button>
+      <button class="btn btn-ghost" onclick="backToWelcome()">← Назад</button>
+    </div>
+  </div>
+</div>
+
+<!-- СОЗДАНИЕ ПАРОЛЯ -->
+<div class="screen" id="pinCreate">
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-brand">Венера</div>
+      <h2>Создайте личный пароль</h2>
+      <p class="sub">Чтобы не потерять доступ к аккаунту.<br>Запишите его, если боитесь забыть.</p>
+
+      <div class="info-box">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 2 4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6l-8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+        <div>Пароль состоит из <b>6 цифр</b>. Запомните его или запишите в надёжном месте.</div>
+      </div>
+
+      <div class="field">
+        <label>Новый пароль</label>
+        <input type="password" id="pin1" class="pin-input" maxlength="6" inputmode="numeric" placeholder="••••••" autocomplete="new-password">
+      </div>
+
+      <button class="btn btn-primary" onclick="pinStep1()">Далее</button>
+    </div>
+  </div>
+</div>
+
+<!-- ПОДТВЕРЖДЕНИЕ ПАРОЛЯ -->
+<div class="screen" id="pinConfirm">
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-brand">Венера</div>
+      <h2>Введите пароль ещё раз</h2>
+      <p class="sub">Для подтверждения</p>
+
+      <div class="field">
+        <label>Повторите пароль</label>
+        <input type="password" id="pin2" class="pin-input" maxlength="6" inputmode="numeric" placeholder="••••••" autocomplete="new-password">
+      </div>
+
+      <div class="error-msg" id="pinErr" style="text-align:center;margin-bottom:10px">Пароли не совпадают</div>
+
+      <button class="btn btn-primary" onclick="pinStep2()">Готово</button>
+      <button class="btn btn-ghost" onclick="showScreen('pinCreate')">← Назад</button>
+    </div>
+  </div>
+</div>
+
+<!-- РЕГИСТРАЦИЯ КЛИЕНТА -->
+<div class="screen" id="clientRegister">
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-brand">Венера</div>
+      <h2>Регистрация</h2>
+      <p class="sub">Запишитесь к мастеру за 30 секунд</p>
+
+      <div class="field"><label>Имя *</label><input type="text" id="cliName" placeholder="Анна"></div>
+      <div class="field"><label>Телефон *</label><input type="tel" id="cliPhone" placeholder="+7 999 123-45-67"></div>
+      <div class="field"><label>Telegram <span class="opt">— необязательно</span></label><input type="text" id="cliTg" placeholder="@anna"></div>
+
+      <button class="btn btn-primary" onclick="clientStep1()">Далее</button>
+      <button class="btn btn-ghost" onclick="showScreen('login')">У меня уже есть аккаунт</button>
+      <button class="btn btn-ghost" onclick="backToWelcome()">← Назад</button>
+    </div>
+  </div>
+</div>
+
+<!-- ВХОД -->
+<div class="screen" id="login">
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-brand">Венера</div>
+      <h2>Вход в аккаунт</h2>
+      <p class="sub">Введите телефон и пароль</p>
+
+      <div class="field"><label>Телефон</label><input type="tel" id="loginPhone" placeholder="+7 999 123-45-67"></div>
+      <div class="field">
+        <label>Пароль (6 цифр)</label>
+        <input type="password" id="loginPin" class="pin-input" maxlength="6" inputmode="numeric" placeholder="••••••" autocomplete="current-password">
+      </div>
+
+      <div class="error-msg" id="loginErr" style="text-align:center;margin-bottom:10px">Неверный телефон или пароль</div>
+
+      <button class="btn btn-primary" onclick="doLogin()">Войти</button>
+      <button class="btn btn-ghost" onclick="goToRegister()">У меня нет аккаунта — зарегистрироваться</button>
+      <button class="btn btn-ghost" onclick="backToWelcome()">← Назад</button>
+    </div>
+  </div>
+</div>
+
+<!-- ВХОД МАСТЕРА -->
+<div class="screen" id="adminLogin">
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-brand">Венера</div>
+      <h2>Вход мастера</h2>
+      <p class="sub">Введите пароль администратора</p>
+
+      <div class="info-box">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 2 4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6l-8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+        <div>Промокод принят. Введите пароль мастера, чтобы войти.</div>
+      </div>
+
+      <div class="field">
+        <label>Пароль мастера (6 цифр)</label>
+        <input type="password" id="adminLoginPin" class="pin-input" maxlength="6" inputmode="numeric" placeholder="••••••" autocomplete="current-password">
+      </div>
+
+      <div class="error-msg" id="adminLoginErr" style="text-align:center;margin-bottom:10px">Неверный пароль</div>
+
+      <button class="btn btn-primary" onclick="doAdminLoginByPin()">Войти</button>
+      <button class="btn btn-ghost" onclick="backToWelcome()">← Назад</button>
+    </div>
+  </div>
+</div>
+
+<!-- КАБИНЕТ КЛИЕНТА -->
+<div class="screen" id="clientCabinet">
+  <div class="header">
+    <div class="brand">Венера</div>
+    <div class="right">
+      <div class="bell" onclick="toggleNotif(event)">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="badge" id="cliBadge">0</span>
+      </div>
+      <div class="user-menu" onclick="confirmLogout()">
+        <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+        <span id="cliHeaderName">Клиент</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="notif-panel" id="cliNotifPanel">
+    <h3>Уведомления</h3>
+    <div id="cliNotifList"></div>
+  </div>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab active" onclick="cliTab('book',event)">
+        <svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Записаться
+      </button>
+      <button class="tab" onclick="cliTab('my',event)">
+        <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-4"/><path d="M9 11V7a3 3 0 0 1 6 0v4"/></svg>
+        Мои записи
+      </button>
+      <button class="tab" onclick="cliTab('contact',event)">
+        <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Связаться
+      </button>
+    </div>
+
+    <div class="section active" id="cliBookSection">
+      <div class="card">
+        <h3>
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/></svg>
+          Выберите услугу
+        </h3>
+        <div class="field" style="margin-bottom:0">
+          <select id="cliService">
+            <option value="Маникюр">Маникюр</option>
+            <option value="Ресницы">Ресницы</option>
+            <option value="Покраска бровей">Покраска бровей</option>
+            <option value="Коррекция бровей">Коррекция бровей</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>
+          <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Выберите дату и время
+        </h3>
+        <div class="calendar-wrap" id="cliCalendar"></div>
+        <div id="cliSlotsWrap"></div>
+      </div>
+    </div>
+
+    <div class="section" id="cliMySection">
+      <div class="card">
+        <h3>История моих записей</h3>
+        <div id="cliMyBookings"></div>
+      </div>
+    </div>
+
+    <div class="section" id="cliContactSection">
+      <div class="card">
+        <h3>Написать мастеру</h3>
+        <div class="field">
+          <textarea id="cliMessage" rows="4" placeholder="Ваш вопрос или пожелание..."></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="sendMessageToMaster()">Отправить мастеру</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- АДМИН-ПАНЕЛЬ -->
+<div class="screen" id="adminPanel">
+  <div class="header">
+    <div class="brand">Венера</div>
+    <div class="right">
+      <div class="bell" onclick="toggleNotif(event)">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="badge" id="admBadge">0</span>
+      </div>
+      <div class="user-menu" onclick="confirmLogout()">
+        <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+        <span id="admHeaderName">Мастер</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="notif-panel" id="admNotifPanel">
+    <h3>Уведомления</h3>
+    <div id="admNotifList"></div>
+  </div>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab active" onclick="admTab('schedule',event)">Расписание</button>
+      <button class="tab" onclick="admTab('clients',event)">Клиенты</button>
+      <button class="tab" onclick="admTab('finance',event)">Финансы</button>
+    </div>
+
+    <div class="section active" id="admScheduleSection">
+      <div class="card">
+        <h3>Календарь</h3>
+        <div class="calendar-wrap" id="admCalendar"></div>
+      </div>
+
+      <div class="card" id="admDayCard" style="display:none">
+        <h3 id="admDayTitle">Расписание на день</h3>
+        <div id="admDaySchedule"></div>
+        <button class="btn btn-outline" style="margin-top:18px" onclick="openManualBooking()">+ Записать клиента вручную</button>
+      </div>
+    </div>
+
+    <div class="section" id="admClientsSection">
+      <div class="card">
+        <h3>Все клиенты</h3>
+        <div style="overflow-x:auto">
+          <table class="clients-table">
+            <thead>
+              <tr><th>Имя</th><th>Телефон</th><th>Последний визит</th><th>Доход</th></tr>
+            </thead>
+            <tbody id="admClientsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" id="admFinanceSection">
+      <div class="tabs" style="margin-bottom:20px">
+        <button class="tab active" onclick="finTab('day',event)">День</button>
+        <button class="tab" onclick="finTab('month',event)">Месяц</button>
+        <button class="tab" onclick="finTab('year',event)">Год</button>
+      </div>
+
+      <div class="fin-grid" id="finCards"></div>
+      <div class="chart-wrap"><canvas id="finChart" height="80"></canvas></div>
+      <div class="card"><h3>Детализация</h3><div id="finDetails"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// ОБЩИЕ УТИЛИТЫ
+// ============================================================
+function pad(n){ return String(n).padStart(2,'0'); }
+function dateToStr(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function todayStr(){ return dateToStr(new Date()); }
+function fmtDate(s){
+  if(!s) return '—';
+  const [y,m,d] = s.split('-');
+  return `${d}.${m}.${y}`;
+}
+function fmtDateHuman(s){
+  if(!s) return '—';
+  const months=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  const [y,m,d]=s.split('-');
+  return `${parseInt(d)} ${months[parseInt(m)-1]}`;
+}
+function isWeekend(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  return d.getDay()===0 || d.getDay()===6;
+}
+function daysFromToday(dateStr){
+  const today = new Date(todayStr()+'T00:00:00');
+  const d = new Date(dateStr+'T00:00:00');
+  return Math.round((d-today)/(1000*60*60*24));
+}
+function toast(msg, type=''){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show '+type;
+  clearTimeout(t._tid);
+  t._tid = setTimeout(()=>t.className='toast '+type, 3200);
+}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function displayPhone(p){
+  const d = String(p).replace(/\D/g,'');
+  if(d.length===11) return `+${d[0]} ${d.slice(1,4)} ${d.slice(4,7)}-${d.slice(7,9)}-${d.slice(9,11)}`;
+  return p;
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function openModal(html){
+  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalBg').classList.add('open');
+}
+function closeModal(){
+  document.getElementById('modalBg').classList.remove('open');
+}
+function formatMMSS(ms){
+  const total = Math.max(0, Math.floor(ms/1000));
+  return `${Math.floor(total/60)}:${pad(total%60)}`;
+}
+
+// ============================================================
+// API-ХЕЛПЕР
+// ============================================================
+async function api(url, options){
+  options = options || {};
+  options.headers = Object.assign({'Content-Type':'application/json'}, options.headers || {});
+  if(options.body && typeof options.body !== 'string') options.body = JSON.stringify(options.body);
+  const res = await fetch(url, options);
+  const data = await res.json().catch(()=>({}));
+  return { ok: res.ok, status: res.status, data };
+}
+
+// ============================================================
+// ГЛОБАЛЬНОЕ СОСТОЯНИЕ
+// ============================================================
+let currentUser = null;
+let cliSlotsCache = {};
+let admCountsCache = {};
+let selectedDay = null;
+let calView = { year: new Date().getFullYear(), month: new Date().getMonth() };
+let financeMode = 'day';
+let promoTimer = null;
+
+// ============================================================
+// ИНИЦИАЛИЗАЦИЯ
+// ============================================================
+async function init(){
+  const { data } = await api('/api/me');
+  if(data.user){
+    currentUser = data.user;
+    if(currentUser.role === 'admin') openAdminPanel();
+    else openClientPanel();
+  } else {
+    showScreen('welcome');
+    checkPromoLock();
+  }
+  setInterval(updateBadges, 8000);
+}
+
+async function checkPromoLock(){
+  const { data } = await api('/api/state');
+  if(data.promoLock && data.promoLock.lockedUntil > Date.now()){
+    renderLock(data.promoLock.lockedUntil);
+  }
+}
+
+function renderLock(until){
+  const input = document.getElementById('promoInput');
+  const btn = document.getElementById('promoBtn');
+  const lockEl = document.getElementById('promoLock');
+  input.disabled = true;
+  btn.disabled = true;
+  clearInterval(promoTimer);
+  const tick = ()=>{
+    const left = until - Date.now();
+    if(left <= 0){
+      clearInterval(promoTimer);
+      input.disabled = false;
+      btn.disabled = false;
+      lockEl.style.display = 'none';
+      return;
+    }
+    lockEl.style.display = 'block';
+    lockEl.textContent = `Слишком много неверных попыток. Попробуйте через ${formatMMSS(left)}.`;
+  };
+  tick();
+  promoTimer = setInterval(tick, 1000);
+}
+
+// ============================================================
+// ПРОМОКОД
+// ============================================================
+async function checkPromo(){
+  const code = document.getElementById('promoInput').value.trim();
+  const err = document.getElementById('promoError');
+  const att = document.getElementById('promoAttempts');
+  err.style.display = 'none';
+  att.style.display = 'none';
+
+  const { ok, data } = await api('/api/promo', { method:'POST', body:{ code } });
+
+  if(ok){
+    if(data.hasAdmin){
+      document.getElementById('adminLoginPin').value = '';
+      document.getElementById('adminLoginErr').style.display = 'none';
+      showScreen('adminLogin');
+    } else {
+      showScreen('adminRegister');
+    }
+    return;
+  }
+  if(data.error === 'locked'){
+    renderLock(data.lockedUntil);
+    return;
+  }
+  if(data.error === 'wrong'){
+    if(data.lockedUntil){
+      renderLock(data.lockedUntil);
+      return;
+    }
+    err.style.display = 'block';
+    att.style.display = 'block';
+    att.textContent = `Неверно. Осталось ${data.left} попыток.`;
+  }
+}
+
+function skipPromo(){ showScreen('login'); }
+function goToRegister(){ showScreen('clientRegister'); }
+function backToWelcome(){
+  showScreen('welcome');
+  document.getElementById('promoInput').value = '';
+  document.getElementById('promoError').style.display = 'none';
+  document.getElementById('promoAttempts').style.display = 'none';
+}
+
+// ============================================================
+// РЕГИСТРАЦИЯ (общая логика)
+// ============================================================
+let pendingRole = null;
+let pendingData = null;
+let pendingPin = null;
+
+function adminStep1(){
+  const name = document.getElementById('admName').value.trim();
+  const surname = document.getElementById('admSurname').value.trim();
+  const phone = document.getElementById('admPhone').value.trim();
+  const email = document.getElementById('admEmail').value.trim();
+  const telegram = document.getElementById('admTg').value.trim();
+  if(!name || !surname || !phone){ toast('Заполните обязательные поля', 'error'); return; }
+  if(phone.replace(/\D/g,'').length < 10){ toast('Введите корректный телефон', 'error'); return; }
+  pendingRole = 'admin';
+  pendingData = { name, surname, phone, email, telegram };
+  clearPinInputs();
+  showScreen('pinCreate');
+}
+
+function clientStep1(){
+  const name = document.getElementById('cliName').value.trim();
+  const phone = document.getElementById('cliPhone').value.trim();
+  const telegram = document.getElementById('cliTg').value.trim();
+  if(!name || !phone){ toast('Введите имя и телефон', 'error'); return; }
+  if(phone.replace(/\D/g,'').length < 10){ toast('Введите корректный телефон', 'error'); return; }
+  pendingRole = 'client';
+  pendingData = { name, phone, telegram };
+  clearPinInputs();
+  showScreen('pinCreate');
+}
+
+function clearPinInputs(){
+  document.getElementById('pin1').value = '';
+  document.getElementById('pin2').value = '';
+  document.getElementById('pinErr').style.display = 'none';
+}
+
+function pinStep1(){
+  const pin = document.getElementById('pin1').value.trim();
+  if(!/^\d{6}$/.test(pin)){ toast('Пароль — 6 цифр', 'error'); return; }
+  pendingPin = pin;
+  document.getElementById('pin2').value = '';
+  document.getElementById('pinErr').style.display = 'none';
+  showScreen('pinConfirm');
+}
+
+async function pinStep2(){
+  const pin = document.getElementById('pin2').value.trim();
+  const err = document.getElementById('pinErr');
+  err.style.display = 'none';
+  if(pin !== pendingPin){ err.style.display = 'block'; return; }
+
+  const payload = Object.assign({}, pendingData, { role: pendingRole, pin });
+  const { ok, data } = await api('/api/register', { method:'POST', body: payload });
+  if(!ok){ toast(data.error || 'Ошибка регистрации', 'error'); return; }
+
+  currentUser = data.user;
+  toast('Готово!', 'success');
+  setTimeout(()=>{
+    if(currentUser.role === 'admin') openAdminPanel();
+    else openClientPanel();
+  }, 300);
+}
+
+// ============================================================
+// ВХОД
+// ============================================================
+async function doLogin(){
+  const phone = document.getElementById('loginPhone').value.trim();
+  const pin = document.getElementById('loginPin').value.trim();
+  const err = document.getElementById('loginErr');
+  err.style.display = 'none';
+
+  if(!phone || !pin){ err.textContent = 'Введите телефон и пароль'; err.style.display = 'block'; return; }
+  if(!/^\d{6}$/.test(pin)){ err.textContent = 'Пароль — 6 цифр'; err.style.display = 'block'; return; }
+
+  const { ok, data } = await api('/api/login', { method:'POST', body:{ phone, pin } });
+  if(!ok){ err.textContent = data.error || 'Ошибка'; err.style.display = 'block'; return; }
+
+  currentUser = data.user;
+  toast('С возвращением, ' + currentUser.name + '!', 'success');
+  setTimeout(()=>{
+    if(currentUser.role === 'admin') openAdminPanel();
+    else openClientPanel();
+  }, 300);
+}
+
+async function doAdminLoginByPin(){
+  const pin = document.getElementById('adminLoginPin').value.trim();
+  const err = document.getElementById('adminLoginErr');
+  err.style.display = 'none';
+  if(!/^\d{6}$/.test(pin)){ err.textContent = 'Пароль — 6 цифр'; err.style.display = 'block'; return; }
+
+  const { ok, data } = await api('/api/admin-login', { method:'POST', body:{ pin } });
+  if(!ok){ err.textContent = data.error || 'Ошибка'; err.style.display = 'block'; return; }
+
+  currentUser = data.user;
+  toast('С возвращением, ' + currentUser.name + '!', 'success');
+  setTimeout(openAdminPanel, 300);
+}
+
+// ============================================================
+// ВЫХОД
+// ============================================================
+function confirmLogout(){
+  openModal(`
+    <div class="close" onclick="closeModal()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+    <h3>Выход из аккаунта</h3>
+    <p class="modal-text">Вы точно хотите выйти из аккаунта?<br><b style="color:var(--danger)">Это действие нельзя отменить.</b></p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
+      <button class="btn btn-danger" onclick="doLogout()">Выйти</button>
+    </div>
+  `);
+}
+async function doLogout(){
+  closeModal();
+  await api('/api/logout', { method:'POST' });
+  currentUser = null;
+  document.getElementById('promoInput').value = '';
+  document.getElementById('promoError').style.display = 'none';
+  document.getElementById('promoAttempts').style.display = 'none';
+  document.getElementById('loginPhone').value = '';
+  document.getElementById('loginPin').value = '';
+  document.getElementById('adminLoginPin').value = '';
+  document.getElementById('loginErr').style.display = 'none';
+  document.getElementById('adminLoginErr').style.display = 'none';
+  showScreen('welcome');
+}
+
+// ============================================================
+// КАЛЕНДАРЬ
+// ============================================================
+async function renderCalendar(containerId, options){
+  const opts = Object.assign({
+    selectable: true,
+    maxDaysAhead: null,
+    onSelect: null,
+    selectedDate: null,
+    showDots: true,
+    showBadge: false
+  }, options || {});
+
+  const container = document.getElementById(containerId);
+  const year = calView.year, month = calView.month;
+  const monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+
+  // Для админа — подгружаем счётчики
+  if(opts.showBadge){
+    const { data } = await api(`/api/admin/counts/${year}/${pad(month+1)}`);
+    admCountsCache = data.counts || {};
+  }
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month+1, 0);
+  const startWeekday = (firstDay.getDay() + 6) % 7;
+  const daysInMonth = lastDay.getDate();
+  const today = todayStr();
+
+  let html = `
+    <div class="cal-header">
+      <div class="cal-title">${monthNames[month]} ${year}</div>
+      <div class="cal-nav">
+        <button onclick="calPrev()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
+        <button onclick="calNext()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+      </div>
+    </div>
+    <div class="cal-weekdays">
+      <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+    </div>
+    <div class="cal-grid">
+  `;
+  for(let i=0;i<startWeekday;i++) html += `<div class="cal-day empty"></div>`;
+
+  for(let d=1; d<=daysInMonth; d++){
+    const ds = year+'-'+pad(month+1)+'-'+pad(d);
+    const weekend = isWeekend(ds);
+    const past = ds < today;
+    const daysAhead = daysFromToday(ds);
+    const farFuture = opts.maxDaysAhead !== null && daysAhead > opts.maxDaysAhead;
+
+    const classes = ['cal-day'];
+    if(weekend) classes.push('weekend');
+    if(past) classes.push('past');
+    if(farFuture) classes.push('far-future');
+    if(ds === today) classes.push('today');
+    if(ds === opts.selectedDate) classes.push('selected');
+
+    let badgeHtml = '';
+    if(opts.showBadge && !weekend && !past && admCountsCache[ds]){
+      badgeHtml = `<div class="cal-badge">${admCountsCache[ds]}</div>`;
+    }
+
+    const clickable = opts.selectable && !weekend && !past && !farFuture;
+    const onclick = clickable ? `onclick="handleCalClick('${ds}','${containerId}')"` : '';
+
+    html += `<div class="${classes.join(' ')}" ${onclick}>
+      ${badgeHtml}
+      <div class="cal-num">${d}</div>
+    </div>`;
+  }
+  html += `</div>`;
+  container.innerHTML = html;
+  if(!window._calHandlers) window._calHandlers = {};
+  window._calHandlers[containerId] = opts;
+}
+function handleCalClick(ds, containerId){
+  const opts = window._calHandlers[containerId];
+  if(opts && opts.onSelect) opts.onSelect(ds);
+}
+function calPrev(){ calView.month--; if(calView.month<0){calView.month=11;calView.year--;} refreshCalendars(); }
+function calNext(){ calView.month++; if(calView.month>11){calView.month=0;calView.year++;} refreshCalendars(); }
+function refreshCalendars(){
+  if(document.getElementById('clientCabinet').classList.contains('active')){
+    renderCalendar('cliCalendar', {
+      selectedDate: selectedDay,
+      maxDaysAhead: 30,
+      onSelect: (ds)=>{ selectedDay = ds; renderClientSlotsForDay(ds); },
+      showDots: true,
+      showBadge: false
+    });
+  }
+  if(document.getElementById('adminPanel').classList.contains('active')){
+    renderCalendar('admCalendar', {
+      selectedDate: selectedDay,
+      onSelect: (ds)=>{ selectedDay = ds; renderAdminDaySchedule(ds); },
+      showDots: false,
+      showBadge: true
+    });
+  }
+}
+
+// ============================================================
+// КАБИНЕТ КЛИЕНТА
+// ============================================================
+function cliTab(name, ev){
+  document.querySelectorAll('#clientCabinet .tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#clientCabinet .section').forEach(s=>s.classList.remove('active'));
+  if(ev && ev.target){
+    const tab = ev.target.closest('.tab');
+    if(tab) tab.classList.add('active');
+  }
+  document.getElementById('cli'+name.charAt(0).toUpperCase()+name.slice(1)+'Section').classList.add('active');
+  if(name==='book') refreshCalendars();
+  if(name==='my') renderClientBookings();
+}
+
+function openClientPanel(){
+  showScreen('clientCabinet');
+  document.getElementById('cliHeaderName').textContent = currentUser.name;
+  selectedDay = null;
+  calView = { year: new Date().getFullYear(), month: new Date().getMonth() };
+  renderCalendar('cliCalendar', {
+    selectedDate: null,
+    maxDaysAhead: 30,
+    onSelect: (ds)=>{ selectedDay = ds; renderClientSlotsForDay(ds); },
+    showDots: true,
+    showBadge: false
+  });
+  document.getElementById('cliSlotsWrap').innerHTML = '';
+  renderClientBookings();
+  updateBadges();
+}
+
+async function renderClientSlotsForDay(dateStr){
+  const wrap = document.getElementById('cliSlotsWrap');
+  const { data } = await api(`/api/slots/${dateStr}`);
+  const slots = data.slots || [];
+  if(slots.length === 0){
+    wrap.innerHTML = '<div class="empty">В этот день мастер не работает</div>';
+    return;
+  }
+  wrap.innerHTML = `
+    <div style="margin-top:18px">
+      <div style="font-weight:600;font-size:14px;margin-bottom:10px;color:var(--purple-dark)">
+        ${fmtDateHuman(dateStr)} — выберите время
+      </div>
+      <div class="slots-grid">
+        ${slots.map(s => {
+          const cls = s.status === 'free' ? 'free' : s.status === 'busy' ? 'busy' : 'closed';
+          const label = s.status === 'free' ? 'Свободно' : s.status === 'busy' ? 'Занято' : 'Закрыто';
+          const onclick = s.status === 'free' ? `onclick="openBookingModal('${dateStr}','${s.time}')"` : '';
+          return `<div class="slot ${cls}" ${onclick}>
+            <span class="time">${s.time}</span>
+            <span class="status">${label}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function openBookingModal(date, time){
+  const service = document.getElementById('cliService').value;
+  openModal(`
+    <div class="close" onclick="closeModal()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+    <h3>Подтверждение записи</h3>
+    <div class="confirm-info">
+      <div class="row"><span class="k">Дата</span><span class="v">${fmtDate(date)}</span></div>
+      <div class="row"><span class="k">Время</span><span class="v">${time}</span></div>
+      <div class="row"><span class="k">Услуга</span><span class="v">${escapeHtml(service)}</span></div>
+    </div>
+    <div class="field">
+      <label>Пожелание <span class="opt">— необязательно</span></label>
+      <input type="text" id="bookingNote" placeholder="Например: хочу красный цвет">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
+      <button class="btn btn-primary" onclick="confirmBooking('${date}','${time}')">Подтвердить</button>
+    </div>
+  `);
+}
+
+async function confirmBooking(date, time){
+  const note = (document.getElementById('bookingNote').value || '').trim();
+  const service = document.getElementById('cliService').value;
+
+  const { ok, data } = await api('/api/bookings', {
+    method:'POST',
+    body: { date, time, service, note }
+  });
+  if(!ok){ toast(data.error || 'Ошибка', 'error'); return; }
+
+  closeModal();
+  toast('Запись создана!', 'success');
+  if(selectedDay) renderClientSlotsForDay(selectedDay);
+  refreshCalendars();
+  renderClientBookings();
+}
+
+async function renderClientBookings(){
+  const { data } = await api('/api/bookings/my');
+  const list = data.bookings || [];
+  const container = document.getElementById('cliMyBookings');
+  if(list.length === 0){
+    container.innerHTML = '<div class="empty">Пока нет записей</div>';
+    return;
+  }
+  container.innerHTML = list.map(b=>`
+    <div class="booking">
+      <div class="info">
+        <div class="name">${fmtDate(b.date)} в ${b.time}</div>
+        <div class="meta">${b.service}${b.note ? ' · '+escapeHtml(b.note) : ''}</div>
+      </div>
+      <div class="actions">
+        <span class="status-badge ${b.status}">${statusLabel(b.status)}</span>
+        ${b.status === 'pending' ? `<button class="btn-sm btn-outline" onclick="cancelBooking(${b.id})">Отменить</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function statusLabel(s){
+  return {pending:'Ожидает', done:'Выполнено', cancelled:'Отменено'}[s] || s;
+}
+
+async function cancelBooking(id){
+  if(!confirm('Отменить эту запись?')) return;
+  const { ok, data } = await api(`/api/bookings/${id}/cancel`, { method:'POST' });
+  if(!ok){ toast(data.error || 'Ошибка', 'error'); return; }
+  toast('Запись отменена', 'success');
+  renderClientBookings();
+  if(selectedDay) renderClientSlotsForDay(selectedDay);
+  refreshCalendars();
+}
+
+async function sendMessageToMaster(){
+  const text = document.getElementById('cliMessage').value.trim();
+  if(!text){ toast('Введите сообщение', 'error'); return; }
+  const { ok, data } = await api('/api/messages', { method:'POST', body:{ text } });
+  if(!ok){ toast(data.error || 'Ошибка', 'error'); return; }
+  document.getElementById('cliMessage').value = '';
+  toast('Мастер получит ваше сообщение', 'success');
+}
+
+// ============================================================
+// АДМИН-ПАНЕЛЬ
+// ============================================================
+function openAdminPanel(){
+  showScreen('adminPanel');
+  document.getElementById('admHeaderName').textContent = currentUser.name;
+  selectedDay = todayStr();
+  calView = { year: new Date().getFullYear(), month: new Date().getMonth() };
+  renderCalendar('admCalendar', {
+    selectedDate: selectedDay,
+    onSelect: (ds)=>{ selectedDay = ds; renderAdminDaySchedule(ds); refreshCalendars(); },
+    showDots: false,
+    showBadge: true
+  });
+  renderAdminDaySchedule(selectedDay);
+  renderAdminClients();
+  renderFinance();
+  updateBadges();
+}
+
+function admTab(name, ev){
+  document.querySelectorAll('#adminPanel > .container > .tabs .tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#adminPanel > .container > .section').forEach(s=>s.classList.remove('active'));
+  if(ev && ev.target){
+    const tab = ev.target.closest('.tab');
+    if(tab) tab.classList.add('active');
+  }
+  document.getElementById('adm'+name.charAt(0).toUpperCase()+name.slice(1)+'Section').classList.add('active');
+  if(name==='schedule') refreshCalendars();
+  if(name==='clients') renderAdminClients();
+  if(name==='finance') renderFinance();
+}
+
+async function renderAdminDaySchedule(dateStr){
+  document.getElementById('admDayCard').style.display = 'block';
+  document.getElementById('admDayTitle').textContent = fmtDate(dateStr);
+  const container = document.getElementById('admDaySchedule');
+
+  if(isWeekend(dateStr)){
+    container.innerHTML = '<div class="empty">Выходной день</div>';
+    return;
+  }
+
+  const { data: slotsData } = await api(`/api/slots/${dateStr}`);
+  const { data: bookingsData } = await api(`/api/admin/bookings/${dateStr}`);
+  const slots = slotsData.slots || [];
+  const bookings = bookingsData.bookings || [];
+
+  if(slots.length === 0){
+    container.innerHTML = '<div class="empty">Нет слотов</div>';
+    return;
+  }
+
+  let html = '';
+  slots.forEach(s => {
+    const b = bookings.find(x => x.time === s.time);
+    if(b){
+      html += `<div class="booking-card" onclick="openBookingActions(${b.id})">
+        <div class="row1">
+          <span class="time-name">${b.time} — ${escapeHtml(b.client_name)}</span>
+          <span class="status-badge ${b.status}">${statusLabel(b.status)}</span>
+        </div>
+        <div class="service">${b.service}</div>
+        <div class="phone">${displayPhone(b.client_phone)}</div>
+        ${b.note ? `<div class="phone" style="margin-top:4px">Заметка: ${escapeHtml(b.note)}</div>` : ''}
+        <div class="hint">Нажмите для действий</div>
+      </div>`;
+    } else if(s.status === 'free'){
+      html += `<div class="booking">
+        <div class="info"><div class="name">${s.time}</div><div class="meta">свободно</div></div>
+        <div class="actions">
+          <button class="btn-sm btn-outline" onclick="toggleSlot('${dateStr}','${s.time}')">Закрыть</button>
+          <button class="btn-sm btn-danger" onclick="removeSlot('${dateStr}','${s.time}')">Удалить</button>
+        </div>
+      </div>`;
+    } else {
+      html += `<div class="booking">
+        <div class="info"><div class="name" style="text-decoration:line-through;color:var(--text2)">${s.time}</div><div class="meta">закрыто</div></div>
+        <div class="actions">
+          <button class="btn-sm btn-outline" onclick="toggleSlot('${dateStr}','${s.time}')">Открыть</button>
+          <button class="btn-sm btn-danger" onclick="removeSlot('${dateStr}','${s.time}')">Удалить</button>
+        </div>
+      </div>`;
+    }
+  });
+  html += `<button class="btn btn-outline" style="margin-top:16px" onclick="addSlot('${dateStr}')">+ Добавить слот</button>`;
+  container.innerHTML = html;
+}
+
+// ============================================================
+// ДЕЙСТВИЯ С ЗАПИСЬЮ
+// ============================================================
+async function openBookingActions(id){
+  const date = selectedDay;
+  const { data: bookingsData } = await api(`/api/admin/bookings/${date}`);
+  const b = (bookingsData.bookings || []).find(x => x.id === id);
+  if(!b){ toast('Не найдено', 'error'); return; }
+
+  if(b.status === 'done'){
+    openModal(`
+      <div class="close" onclick="closeModal()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+      <h3>Запись выполнена</h3>
+      <p class="modal-text">${fmtDate(b.date)} в ${b.time} — ${escapeHtml(b.client_name)}<br>Услуга: ${b.service}<br>Сумма: <b style="color:var(--success)">${(b.price||0).toLocaleString('ru')} ₽</b></p>
+      <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Закрыть</button></div>
+    `);
+    return;
+  }
+
+  openModal(`
+    <div class="close" onclick="closeModal()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+    <h3>Запись: ${escapeHtml(b.client_name)}</h3>
+    <p class="modal-text">${fmtDate(b.date)} в ${b.time}<br>Услуга: ${b.service}</p>
+    <div class="modal-actions" style="flex-direction:column;gap:8px">
+      <button class="btn btn-success" onclick="markDone(${b.id})">Отметить как выполненную</button>
+      <button class="btn btn-outline" onclick="stepMove(${b.id})">Перенести</button>
+      <button class="btn btn-danger" onclick="stepCancel(${b.id})">Отменить запись</button>
+    </div>
+  `);
+}
+
+function stepCancel(id){
+  openModal(`
+    <div class="close" onclick="closeModal()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+    <h3>Отменить запись?</h3>
+    <p class="modal-text">Ты правда хочешь отменить её?<br><b style="color:var(--danger)">Клиентка расстроится!</b></p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Нет</button>
+      <button class="btn btn-danger" onclick="stepCancelConfirm(${id})">Да</button>
+    </div>
+  `);
+}
+function stepCancelConfirm(id){
+  openModal(`
+    <div class="close" onclick="closeModal()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+    <h3>Сообщение клиентке</h3>
+    <p class="modal-text">Хотите отправить клиентке сообщение с пояснением причины?</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="doCancelBooking(${id}, '')">Нет</button>
+      <button class="btn btn-primary" onclick="stepCancelMessage(${id})">Да</button>
+    </div>
+  `);
+}
+function stepCancelMessage(id){
+  openModal(`
+    <div class="close" onclick="closeModal()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+    <h3>Текст сообщения</h3>
+    <div class="field"><textarea id="cancelMsg" rows="4" placeholder="Например: к сожалению, я заболела..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="stepCancelConfirm(${id})">← Назад</button>
+      <button class="btn btn-danger" onclick="doCancelBooking(${id}, document.getElementById('cancelMsg').value.trim())">Отправить и отменить</button>
+    </div>
+  `);
+}
+async function doCancelBooking(id, message){
+  const { ok, data } = await api(`/api/admin/bookings/${id}/cancel`, { method:'POST', body:{ message } });
+  if(!ok){ toast(data.error || 'Ошибка', 'error'); return; }
+  closeModal();
+  toast('Запись отменена', 'success');
+  renderAdminDaySchedule(selectedDay);
+  refreshCalendars();
+}
+
+function stepMove(id){
+  openModal(`
+    <div class="close" onclick="closeModal()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+    <h3>Перенести запись?</h3>
+    <p class="modal-text">Точно перенести?</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Нет</button>
+      <button class="btn btn-primary" onclick="stepMoveSelect(${id})">Да</button>
+    </div>
+  `);
+}
+
+async function stepMoveSelect(id){
+  // Собираем свободные слоты на 60 дней вперёд
+  const dateOptions = [];
+  for(let i=1; i<=60; i++){
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    const ds = dateToStr(d);
+    if(isWeekend(ds)) continue;
+    const { data } = await api(`/api/slots/${ds}`);
+    const free = (data.slots || []).filter(s => s.status === 'free');
+    if(free.length > 0) dateOptions.push({ date: ds, slots: free });
+  }
+
+  openModal(`
+    <div class="close" onclick="closeModal()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+    <h3>Перенос записи</h3>
+    <div class="field">
+      <label>Новая дата</label>
+      <select id="moveDate" onchange="updateMoveSlots()">
+        ${dateOptions.length === 0 ? '<option value="">Нет свободных слотов</option>' :
+          dateOptions.map(o => `<option value="${o.date}">${fmtDate(o.date)} — ${fmtDateHuman(o.date)}</option>`).join('')}
+      </select>
+    </div>
+    <div class="field">
+      <label>Новое время</label>
+      <select id="moveTime"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="stepMove(${id})">← Назад</button>
+      <button class="btn btn-primary" onclick="doMoveBooking(${id})" ${dateOptions.length===0?'disabled':''}>Подтвердить</button>
+    </div>
+  `);
+  window._moveDateOptions = dateOptions;
+  updateMoveSlots();
+}
+
+function updateMoveSlots(){
+  const dateSel = document.getElementById('moveDate');
+  const timeSel = document.getElementById('moveTime');
+  if(!dateSel || !timeSel) return;
+  const opt = (window._moveDateOptions || []).find(o => o.date === dateSel.value);
+  timeSel.innerHTML = opt
+    ? opt.slots.map(s => `<option value="${s.time}">${s.time}</option>`).join('')
+    : '<option value="">—</option>';
+}
+
+async function doMoveBooking(id){
+  const date = document.getElementById('moveDate').value;
+  const time = document.getElementById('moveTime').value;
+  if(!date || !time){ toast('Выберите дату и время', 'error'); return; }
+  const { ok, data } = await api(`/api/admin/bookings/${id}/move`, { method:'POST', body:{ date, time } });
+  if(!ok){ toast(data.error || 'Ошибка', 'error'); return; }
+  closeModal();
+  toast('Запись перенесена', 'success');
+  renderAdminDaySchedule(selectedDay);
+  refreshCalendars();
+}
+
+async function markDone(id){
+  const price = prompt('Введите сумму за услугу (₽):', '2500');
+  if(price === null) return;
+  const { ok, data } = await api(`/api/admin/bookings/${id}/done`, { method:'POST', body:{ price } });
+  if(!ok){ toast(data.error || 'Ошибка', 'error'); return; }
+  toast('Визит отмечен', 'success');
+  renderAdminDaySchedule(selectedDay);
+  refreshCalendars();
+}
+
+// ============================================================
+// СЛОТЫ (управление)
+// ============================================================
+async function toggleSlot(date, time){
+  await api('/api/admin/slots/toggle', { method:'POST', body:{ date, time } });
+  renderAdminDaySchedule(date);
+  refreshCalendars();
+}
+async function removeSlot(date, time){
+  if(!confirm('Удалить слот '+time+'?')) return;
+  await api('/api/admin/slots/remove', { method:'POST', body:{ date, time } });
+  renderAdminDaySchedule(date);
+  refreshCalendars();
+}
+async function addSlot(date){
+  const time = prompt('Время слота (например 16:30):');
+  if(!time) return;
+  if(!/^\d{2}:\d{2}$/.test(time)){ toast('Неверный формат. ЧЧ:ММ', 'error'); return; }
+  await api('/api/admin/slots/add', { method:'POST', body:{ date, time } });
+  renderAdminDaySchedule(date);
+  refreshCalendars();
+  toast('Слот добавлен', 'success');
+}
+
+// ============================================================
+// КЛИЕНТЫ
+// ============================================================
+async function renderAdminClients(){
+  const { data } = await api('/api/admin/clients');
+  const list = data.clients || [];
+  const tbody = document.getElementById('admClientsBody');
+  if(list.length === 0){
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text2);padding:30px">Пока нет клиентов</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(c=>`
+    <tr onclick="openClientCard(${c.id})">
+      <td><b>${escapeHtml(c.name)}</b></td>
+      <td>${displayPhone(c.phone)}</td>
+      <td>${c.last_date ? fmtDate(c.last_date) : '—'}</td>
+      <td class="income">${(c.income||0).toLocaleString('ru')} ₽</td>
+    </tr>
+  `).join('');
+}
+
+async function openClientCard(id){
+  const { data } = await api(`/api/admin/clients/${id}`);
+  const c = data.client;
+  const bookings = data.bookings || [];
+  const notes = data.notes || [];
+  const totalIncome = bookings.filter(b => b.status==='done').reduce((s,b)=>s+(b.price||0),0);
+
+  openModal(`
+    <div class="close" onclick="closeModal()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+    <h3>${escapeHtml(c.name)}</h3>
+    <p style="color:var(--text2);font-size:14px;margin-bottom:18px;line-height:1.6">
+      ${displayPhone(c.phone)}${c.telegram ? '<br>Telegram: '+escapeHtml(c.telegram) : ''}<br>
+      Всего: <b style="color:var(--success)">${totalIncome.toLocaleString('ru')} ₽</b>
+    </p>
+    <h4 style="margin:18px 0 10px;font-size:14px;color:var(--purple-dark)">Заметки</h4>
+    ${notes.length===0 ? '<p style="color:var(--text2);font-size:13px">Нет заметок</p>' :
+      notes.map(n=>`<div style="background:var(--purple-light);padding:11px 13px;border-radius:10px;margin-bottom:7px;font-size:13px;display:flex;justify-content:space-between;gap:8px">
+        <span>${escapeHtml(n.text)}</span>
+        <span style="cursor:pointer;color:var(--danger)" onclick="delNote(${n.id},${id})">✕</span>
+      </div>`).join('')}
+    <div class="field" style="margin-top:10px">
+      <input type="text" id="newNote" placeholder="Добавить заметку...">
+    </div>
+    <button class="btn btn-primary" style="padding:11px;font-size:14px" onclick="addNote(${id})">Добавить заметку</button>
+    <h4 style="margin:22px 0 10px;font-size:14px;color:var(--purple-dark)">История</h4>
+    ${bookings.length === 0 ? '<p style="color:var(--text2);font-size:13px">Нет записей</p>' :
+      bookings.map(b=>`<div style="padding:9px 0;border-bottom:1px solid var(--border);font-size:13px">
+        ${fmtDate(b.date)} ${b.time} — ${b.service}
+        <span class="status-badge ${b.status}" style="float:right;font-size:10px">${statusLabel(b.status)}</span>
+        ${b.price ? `<div style="color:var(--success);font-size:12px;margin-top:3px">${b.price} ₽</div>` : ''}
+      </div>`).join('')}
+  `);
+}
+
+async function addNote(clientId){
+  const text = document.getElementById('newNote').value.trim();
+  if(!text) return;
+  await api('/api/admin/notes', { method:'POST', body:{ client_id: clientId, text } });
+  openClientCard(clientId);
+}
+async function delNote(noteId, clientId){
+  await api(`/api/admin/notes/${noteId}/delete`, { method:'POST' });
+  openClientCard(clientId);
+}
+
+// ============================================================
+// ФИНАНСЫ
+// ============================================================
+function finTab(mode, ev){
+  financeMode = mode;
+  document.querySelectorAll('#admFinanceSection .tab').forEach(t=>t.classList.remove('active'));
+  if(ev && ev.target){
+    const tab = ev.target.closest('.tab');
+    if(tab) tab.classList.add('active');
+  }
+  renderFinance();
+}
+
+let chartInstance = null;
+
+async function renderFinance(){
+  const { data } = await api(`/api/admin/finance/${financeMode}`);
+  const cards = document.getElementById('finCards');
+  const details = document.getElementById('finDetails');
+  let labels = [], values = [], title = '';
+
+  if(financeMode === 'day'){
+    title = 'Сегодня';
+    labels = ['День'];
+    values = [data.sum];
+    cards.innerHTML = `
+      <div class="fin-card"><div class="label">Доход сегодня</div><div class="value">${(data.sum||0).toLocaleString('ru')} ₽</div></div>
+      <div class="fin-card"><div class="label">Визитов</div><div class="value">${data.count}</div></div>
+      <div class="fin-card"><div class="label">Средний чек</div><div class="value">${data.count ? Math.round(data.sum/data.count).toLocaleString('ru') : 0} ₽</div></div>
+    `;
+    details.innerHTML = (data.items || []).length === 0
+      ? '<div class="empty">Сегодня ещё не было визитов</div>'
+      : data.items.map(b=>`<div class="booking">
+          <div class="info"><div class="name">Запись #${b.id}</div><div class="meta">${b.service}</div></div>
+          <div class="income">${(b.price||0).toLocaleString('ru')} ₽</div>
+        </div>`).join('');
+  }
+
+  if(financeMode === 'month'){
+    const byDay = data.byDay || {};
+    const daysInMonth = new Date().getDate();
+    for(let d=1; d<=daysInMonth; d++){
+      const ds = data.ym + '-' + pad(d);
+      labels.push(d);
+      values.push(byDay[ds] || 0);
+    }
+    const delta = data.prevSum ? Math.round((data.sum-data.prevSum)/data.prevSum*100) : 0;
+    cards.innerHTML = `
+      <div class="fin-card"><div class="label">Доход за месяц</div><div class="value">${(data.sum||0).toLocaleString('ru')} ₽</div></div>
+      <div class="fin-card"><div class="label">Год назад</div><div class="value">${(data.prevSum||0).toLocaleString('ru')} ₽</div>
+        <div class="delta ${delta>=0?'up':'down'}">${delta>=0?'+':'−'}${Math.abs(delta)}%</div></div>
+      <div class="fin-card"><div class="label">Визитов</div><div class="value">${data.count}</div></div>
+    `;
+    details.innerHTML = '<p style="color:var(--text2);font-size:14px">График по дням ↑</p>';
+  }
+
+  if(financeMode === 'year'){
+    const byMonth = data.byMonth || {};
+    labels = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+    values = labels.map((_,i) => byMonth[i+1] || 0);
+    const delta = data.prevSum ? Math.round((data.sum-data.prevSum)/data.prevSum*100) : 0;
+    cards.innerHTML = `
+      <div class="fin-card"><div class="label">Доход за год</div><div class="value">${(data.sum||0).toLocaleString('ru')} ₽</div></div>
+      <div class="fin-card"><div class="label">Прошлый год</div><div class="value">${(data.prevSum||0).toLocaleString('ru')} ₽</div>
+        <div class="delta ${delta>=0?'up':'down'}">${delta>=0?'+':'−'}${Math.abs(delta)}%</div></div>
+      <div class="fin-card"><div class="label">Визитов</div><div class="value">${data.count}</div></div>
+    `;
+    details.innerHTML = '<p style="color:var(--text2);font-size:14px">График по месяцам ↑</p>';
+  }
+
+  drawChart(labels, values, title);
+}
+
+function drawChart(labels, values, title){
+  const ctx = document.getElementById('finChart');
+  if(chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ label: title, data: values, backgroundColor: '#8B5CF6', borderRadius: 6, maxBarThickness: 44 }]},
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { callback: v => v.toLocaleString('ru')+' ₽' } }
+      }
+    }
+  });
+}
+
+// ============================================================
+// РУЧНАЯ ЗАПИСЬ
+// ============================================================
+async function openManualBooking(){
+  const { data } = await api('/api/admin/clients');
+  const clients = data.clients || [];
+  if(clients.length === 0){ toast('Сначала зарегистрируйте клиента', 'error'); return; }
+  const date = selectedDay || todayStr();
+  const { data: slotsData } = await api(`/api/slots/${date}`);
+  const slots = slotsData.slots || [];
+
+  openModal(`
+    <div class="close" onclick="closeModal()"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+    <h3>Записать клиента вручную</h3>
+    <div class="field"><label>Клиент</label>
+      <select id="mbClient">${clients.map(c=>`<option value="${c.id}">${escapeHtml(c.name)} (${displayPhone(c.phone)})</option>`).join('')}</select>
+    </div>
+    <div class="field"><label>Дата</label><input type="date" id="mbDate" value="${date}"></div>
+    <div class="field"><label>Время</label>
+      <select id="mbTime">${slots.filter(s=>s.status==='free').map(s=>`<option>${s.time}</option>`).join('')}</select>
+    </div>
+    <div class="field"><label>Услуга</label>
+      <select id="mbService"><option>Маникюр</option><option>Ресницы</option><option>Покраска бровей</option><option>Коррекция бровей</option></select>
+    </div>
+    <button class="btn btn-primary" onclick="confirmManualBooking()">Записать</button>
+  `);
+}
+
+async function confirmManualBooking(){
+  const client_id = parseInt(document.getElementById('mbClient').value);
+  const date = document.getElementById('mbDate').value;
+  const time = document.getElementById('mbTime').value;
+  const service = document.getElementById('mbService').value;
+  const { ok, data } = await api('/api/admin/bookings/manual', {
+    method:'POST', body:{ client_id, date, time, service }
+  });
+  if(!ok){ toast(data.error || 'Ошибка', 'error'); return; }
+  closeModal();
+  toast('Клиент записан', 'success');
+  renderAdminDaySchedule(date);
+  refreshCalendars();
+}
+
+// ============================================================
+// УВЕДОМЛЕНИЯ
+// ============================================================
+async function toggleNotif(event){
+  event.stopPropagation();
+  const isAdmin = currentUser && currentUser.role === 'admin';
+  const panel = document.getElementById(isAdmin ? 'admNotifPanel' : 'cliNotifPanel');
+  panel.classList.toggle('open');
+  if(panel.classList.contains('open')){
+    await renderNotifications();
+    await api('/api/notifications/read', { method:'POST' });
+    updateBadges();
+  }
+}
+
+async function renderNotifications(){
+  const isAdmin = currentUser && currentUser.role === 'admin';
+  const container = document.getElementById(isAdmin ? 'admNotifList' : 'cliNotifList');
+  const { data } = await api('/api/notifications');
+  const list = data.list || [];
+  if(list.length === 0){
+    container.innerHTML = '<div class="notif-empty">Пока нет уведомлений</div>';
+    return;
+  }
+  container.innerHTML = list.map(n=>`
+    <div class="notif-item ${n.is_read ? '' : 'unread'}">
+      <div class="t">${escapeHtml(n.title)}</div>
+      <div class="d">${escapeHtml(n.text)}</div>
+    </div>
+  `).join('');
+}
+
+async function updateBadges(){
+  if(!currentUser) return;
+  const isAdmin = currentUser.role === 'admin';
+  const { data } = await api('/api/notifications');
+  const badge = document.getElementById(isAdmin ? 'admBadge' : 'cliBadge');
+  if(badge){
+    badge.textContent = data.unread;
+    badge.style.display = data.unread > 0 ? 'inline-block' : 'none';
+  }
+}
+
+document.addEventListener('click', (e)=>{
+  if(!e.target.closest('.notif-panel') && !e.target.closest('.bell')){
+    document.querySelectorAll('.notif-panel').forEach(p => p.classList.remove('open'));
+  }
+});
+
+// ============================================================
+// ОЧИСТКА PIN-ИНПУТОВ
+// ============================================================
+['pin1','pin2','loginPin','promoInput','adminLoginPin'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el){
+    el.addEventListener('input', ()=>{ el.value = el.value.replace(/\D/g,'').slice(0,6); });
+  }
+});
+
+// ============================================================
+// СТАРТ
+// ============================================================
+init();
+</script>
+</body>
+</html>
